@@ -18,6 +18,7 @@ This builds the WASM bindings, installs the frontend dependencies from `bun.lock
 - Events appear while import continues. **Cancel import** keeps already imported events; **Restart import** starts again.
 - Search plain text or fields such as `event_id:4624`, `provider:"Microsoft-Windows-Security-Auditing"`, and `computer:HOST`.
 - Use the timeline to select a UTC interval, or enter precise start/end times.
+- In **View**, choose Local Time (your computer), UTC, or **Specified Time Zone…** to enter a fixed whole-hour offset such as `UTC-5` or `UTC+8`. The choice is saved locally and applies to displayed event times, timeline ranges, and date/time filters; fixed offsets do not follow daylight saving time.
 - Sort a column, filter values, and add event fields as columns from the details pane.
 - Save searches and column layouts locally. Recent logs are stored in IndexedDB.
 - Export matching events as JSON; **Save Original Log As** downloads the original EVTX.

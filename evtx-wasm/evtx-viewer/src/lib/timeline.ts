@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { queryLogs, whereClause } from "./duckdb";
-import type { TimeZone } from "./timeZone";
+import { fixedOffsetMs, isFixedOffset, type TimeZone } from "./timeZone";
 import type { FilterOptions } from "./types";
 
 const count = z.coerce.number().int().nonnegative();
@@ -63,13 +63,24 @@ const pad = (value: number, width = 2) => String(value).padStart(width, "0");
 
 /** `2026-09-24 10:00:00.123` in the given zone, the format `parseTimeRange` reads back. */
 export function formatTimeInput(date: Date, zone: TimeZone): string {
-  const utc = zone === "utc";
+  const utc = zone !== "local";
+  const displayed = isFixedOffset(zone) ? new Date(date.getTime() + fixedOffsetMs(zone)) : date;
   const parts = utc
-    ? [date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate()]
-    : [date.getFullYear(), date.getMonth() + 1, date.getDate()];
+    ? [displayed.getUTCFullYear(), displayed.getUTCMonth() + 1, displayed.getUTCDate()]
+    : [displayed.getFullYear(), displayed.getMonth() + 1, displayed.getDate()];
   const time = utc
-    ? [date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds(), date.getUTCMilliseconds()]
-    : [date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds()];
+    ? [
+        displayed.getUTCHours(),
+        displayed.getUTCMinutes(),
+        displayed.getUTCSeconds(),
+        displayed.getUTCMilliseconds(),
+      ]
+    : [
+        displayed.getHours(),
+        displayed.getMinutes(),
+        displayed.getSeconds(),
+        displayed.getMilliseconds(),
+      ];
   return `${pad(parts[0], 4)}-${pad(parts[1])}-${pad(parts[2])} ${pad(time[0])}:${pad(time[1])}:${pad(time[2])}.${pad(time[3], 3)}`;
 }
 
@@ -83,7 +94,8 @@ function parseTime(value: string, zone: TimeZone): Date {
   const second = Number(parts[6] ?? 0);
   const ms = Number((parts[7] ?? "").padEnd(3, "0"));
   const fields = [year, month - 1, day, hour, minute, second, ms] as const;
-  const date = zone === "utc" ? new Date(Date.UTC(...fields)) : new Date(...fields);
+  const date =
+    zone === "local" ? new Date(...fields) : new Date(Date.UTC(...fields) - fixedOffsetMs(zone));
   const back = formatTimeInput(date, zone);
   const expected = `${pad(year, 4)}-${pad(month)}-${pad(day)} ${pad(hour)}:${pad(minute)}:${pad(second)}.${pad(ms, 3)}`;
   return back === expected ? date : new Date(NaN);
