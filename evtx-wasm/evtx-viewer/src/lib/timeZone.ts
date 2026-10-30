@@ -1,6 +1,18 @@
 import { useSyncExternalStore } from "react";
 
-export type TimeZone = "local" | "utc";
+export type TimeZone = "local" | "utc" | `UTC+${number}` | `UTC-${number}`;
+
+/** Fixed whole-hour offsets, from UTC-12 through UTC+14 (no daylight saving). */
+export function parseFixedOffset(zone: string): number | undefined {
+  const match = /^UTC([+-])(0|[1-9]|1[0-4])$/.exec(zone);
+  if (!match) return undefined;
+  const hours = Number(match[2]) * (match[1] === "+" ? 1 : -1);
+  return hours >= -12 ? hours : undefined;
+}
+
+export const fixedOffsetMs = (zone: TimeZone): number => (parseFixedOffset(zone) ?? 0) * 3_600_000;
+
+export const isFixedOffset = (zone: TimeZone): boolean => parseFixedOffset(zone) !== undefined;
 
 const STORAGE_KEY = "time-zone";
 const listeners = new Set<() => void>();
@@ -8,7 +20,10 @@ let current: TimeZone = readSaved();
 
 function readSaved(): TimeZone {
   try {
-    return localStorage.getItem(STORAGE_KEY) === "utc" ? "utc" : "local";
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved === "utc" || (saved && parseFixedOffset(saved) !== undefined)
+      ? (saved as TimeZone)
+      : "local";
   } catch {
     return "local";
   }
@@ -38,7 +53,8 @@ export function useTimeZone(): TimeZone {
   );
 }
 
-export const timeZoneLabel = (zone: TimeZone = current) => (zone === "utc" ? "UTC" : "local time");
+export const timeZoneLabel = (zone: TimeZone = current) =>
+  zone === "utc" ? "UTC" : zone === "local" ? "local time" : zone;
 
 const formats = new Map<TimeZone, Intl.DateTimeFormat>();
 
@@ -61,11 +77,11 @@ export function formatEventTime(
       second: "2-digit",
       fractionalSecondDigits: 3,
       hourCycle: "h23",
-      timeZone: zone === "utc" ? "UTC" : undefined,
+      timeZone: zone === "local" ? undefined : "UTC",
     });
     formats.set(zone, format);
   }
-  return format.format(date);
+  return format.format(isFixedOffset(zone) ? new Date(date.getTime() + fixedOffsetMs(zone)) : date);
 }
 
 export const getTimeZone = (): TimeZone => current;
@@ -121,11 +137,12 @@ function nextBucket(start: number, unit: TimeUnit, utc: boolean): number {
  */
 export function timeBuckets(lo: number, hi: number, zone: TimeZone, max = 60): [number, number][] {
   const unit = UNITS.find(([, size]) => (hi - lo) / size < max)?.[0] ?? "year";
-  const utc = zone === "utc";
+  const utc = zone !== "local";
+  const shift = isFixedOffset(zone) ? fixedOffsetMs(zone) : 0;
   const buckets: [number, number][] = [];
-  for (let start = bucketStart(lo, unit, utc); start <= hi;) {
+  for (let start = bucketStart(lo + shift, unit, utc); start <= hi + shift;) {
     const end = nextBucket(start, unit, utc);
-    buckets.push([start, end]);
+    buckets.push([start - shift, end - shift]);
     start = end;
   }
   return buckets;
@@ -160,9 +177,11 @@ export function formatTimeBucket(value: string, zone: TimeZone = current): strin
       minute: clock ? "2-digit" : undefined,
       second: unit === "second" ? "2-digit" : undefined,
       hourCycle: "h23",
-      timeZone: zone === "utc" ? "UTC" : undefined,
+      timeZone: zone === "local" ? undefined : "UTC",
     });
     bucketFormats.set(`${zone} ${unit}`, format);
   }
-  return format.format(range.start);
+  return format.format(
+    isFixedOffset(zone) ? new Date(range.start.getTime() + fixedOffsetMs(zone)) : range.start,
+  );
 }

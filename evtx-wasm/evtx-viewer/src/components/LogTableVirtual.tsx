@@ -676,7 +676,8 @@ export const LogTableVirtual: React.FC<Props> = ({ dataSource, onManageColumns }
                 const right = col.align === "right";
                 const upcoming = nextSort(sort, col.id) ?? DEFAULT_SORT;
                 const zone = col.id === "time" ? timeZoneLabel(timeZone) : null;
-                const shortZone = timeZone === "utc" ? "UTC" : "local";
+                const shortZone =
+                  timeZone === "local" ? "local" : timeZone === "utc" ? "UTC" : timeZone;
                 const fixed = NON_FILTERABLE.has(col.id);
                 return (
                   <TH

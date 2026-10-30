@@ -24,6 +24,7 @@ import { useEvtxLog } from "./hooks/useEvtxLog";
 import { ColumnManager } from "./components/ColumnManager";
 import { SearchWorkspace } from "./components/SearchWorkspace";
 import { EventTimeline } from "./components/EventTimeline";
+import { SpecifiedTimeZone } from "./components/SpecifiedTimeZone";
 import EvtxStorage from "./lib/storage";
 import { fetchRecords, getSessionId } from "./lib/duckdb";
 import { errorMessage } from "./lib/types";
@@ -162,6 +163,7 @@ export default function App() {
     [],
   );
   const zone = useTimeZone();
+  const [showSpecifiedZone, setShowSpecifiedZone] = useState(false);
   const [treeVersion, setTreeVersion] = useState(0);
   const [actionError, setActionError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -362,6 +364,16 @@ export default function App() {
           radio: true,
           onClick: () => setTimeZone(value),
         })),
+        {
+          id: "zone-specified",
+          label:
+            zone !== "local" && zone !== "utc"
+              ? `Specified Time Zone (${zone})…`
+              : "Specified Time Zone…",
+          checked: zone !== "local" && zone !== "utc",
+          radio: true,
+          onClick: () => setShowSpecifiedZone(true),
+        },
       ],
     },
     {
@@ -386,6 +398,13 @@ export default function App() {
   return (
     <>
       <GlobalStyles />
+      {showSpecifiedZone && (
+        <SpecifiedTimeZone
+          current={zone}
+          onApply={setTimeZone}
+          onClose={() => setShowSpecifiedZone(false)}
+        />
+      )}
       <Shell>
         <MenuBar items={menus} />
         <Bar>
