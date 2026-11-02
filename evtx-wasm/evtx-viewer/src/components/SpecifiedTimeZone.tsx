@@ -57,7 +57,10 @@ export function SpecifiedTimeZone({
   return (
     <Dialog
       ref={dialog}
-      onClose={onClose}
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
       onClick={(event) => {
         if (event.target === dialog.current) onClose();
       }}
