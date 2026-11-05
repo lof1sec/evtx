@@ -4,6 +4,7 @@ import { levelName, type ParsedQuery } from "./types";
 export const SEARCH_FIELDS = [
   "level",
   "event_id",
+  "event_name",
   "provider",
   "channel",
   "computer",
@@ -18,6 +19,8 @@ const FIELDS = new Map([
   ...SYSTEM_COLUMN_IDS.map((id) => [id.toLowerCase(), id] as const),
   ["event_id", "eventId"],
   ["id", "eventId"],
+  ["event_name", "eventName"],
+  ["name", "eventName"],
   ["source", "provider"],
   ["host", "computer"],
   ["log", "channel"],
@@ -124,7 +127,13 @@ const quote = (text: string, bare: RegExp) =>
 /** The canonical text for one term: eventId -> event_id, eventData.X -> @X. */
 export function formatTerm(id: string | undefined, value: string, exclude: boolean): string {
   const data = id && eventDataField(id);
-  const field = data ? `@${quote(data, /^[\w.-]+$/)}` : id === "eventId" ? "event_id" : id;
+  const field = data
+    ? `@${quote(data, /^[\w.-]+$/)}`
+    : id === "eventId"
+      ? "event_id"
+      : id === "eventName"
+        ? "event_name"
+        : id;
   const text = quote(value, field ? /^[^\s":]+$/ : /^[^\s":-][^\s":]*$/);
   return `${exclude ? "-" : ""}${field ? `${field}:` : ""}${text}`;
 }

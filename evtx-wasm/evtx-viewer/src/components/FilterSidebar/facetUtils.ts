@@ -1,3 +1,4 @@
+import { formatEventIdFacet } from "../../lib/eventNames";
 import { levelName, type TableColumn, type FilterOptions } from "../../lib/types";
 import {
   formatEventTime,
@@ -26,7 +27,7 @@ export function buildFacetConfigs(columns: TableColumn[]): FacetConfig[] {
     },
     { id: "provider", label: "Provider" },
     { id: "channel", label: "Channel" },
-    { id: "eventId", label: "Event ID" },
+    { id: "eventId", label: "Event ID", displayValue: (value) => formatEventIdFacet(value) },
   ];
   const dynamic = columns
     .filter((column) => !builtins.some((facet) => facet.id === column.id))

@@ -1,3 +1,5 @@
+import { EVENT_NAME_SQL } from "./eventNames";
+
 export const EVENT_DATA_PREFIX = "eventData.";
 
 interface ColumnSql {
@@ -6,6 +8,8 @@ interface ColumnSql {
   typed?: string;
   /** Filter values other than "" that DuckDB can convert to this column's type. */
   values?: RegExp;
+  /** Text facets show next to each value, e.g. the event name for an event ID. */
+  label?: string;
 }
 
 const INTEGER = /^-?\d+$/;
@@ -21,7 +25,8 @@ const SYSTEM_COLUMNS = new Map<string, ColumnSql>([
   ],
   ["provider", { sql: "Provider" }],
   ["channel", { sql: "Channel" }],
-  ["eventId", { sql: "EventID", values: /^\d{1,5}$/ }],
+  ["eventId", { sql: "EventID", values: /^\d{1,5}$/, label: EVENT_NAME_SQL }],
+  ["eventName", { sql: EVENT_NAME_SQL }],
   ["task", { sql: "Task", values: INTEGER }],
   ["user", { sql: "UserID" }],
   ["computer", { sql: "Computer" }],
