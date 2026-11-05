@@ -73,6 +73,7 @@ export const getDefaultColumns = (): TableColumn[] => [
   { id: "time", header: "Date and Time" },
   { id: "provider", header: "Source" },
   { id: "eventId", header: "Event ID", align: "right" },
+  { id: "eventName", header: "Event Name" },
   { id: "task", header: "Task", align: "right" },
   { id: "user", header: "User" },
   { id: "computer", header: "Computer" },

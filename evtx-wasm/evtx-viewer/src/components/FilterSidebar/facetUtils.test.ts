@@ -71,3 +71,17 @@ it("sets one time range from a bucket and shows it checked", () => {
   expect(toggleFacet(selected, "time", bucket).timeRange).toBeUndefined();
   expect(isFiltered(clearFacet(selected, "time"), "time")).toBe(false);
 });
+
+it("formats event ID facet options with their catalog name in parenthesis", () => {
+  const configs = buildFacetConfigs([]);
+  const eventIdFacet = configs.find((facet) => facet.id === "eventId");
+  expect(eventIdFacet).toBeDefined();
+  expect(formatFacetValue(eventIdFacet!, "4624")).toBe(
+    "4624 (An account was successfully logged on)",
+  );
+  expect(formatFacetValue(eventIdFacet!, "25001")).toBe(
+    "25001 (Operation Copy - Copy item to another Exchange mailbox folder)",
+  );
+  expect(formatFacetValue(eventIdFacet!, "99999")).toBe("99999");
+  expect(formatFacetValue(eventIdFacet!, "")).toBe("(Not set)");
+});

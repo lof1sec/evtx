@@ -11,6 +11,7 @@ import {
 } from "./types";
 import { parseSearchQuery, searchWords } from "./searchQuery";
 import { columnSql } from "./columnSql";
+import { EVENT_NAMES_TABLE_SQL } from "./eventNames";
 import type { RowSort } from "./duckDbDataSource";
 import { getTimeZone, timeBuckets, type TimeZone } from "./timeZone";
 
@@ -55,6 +56,7 @@ async function openDuckDB(): Promise<AsyncDuckDBConnection> {
     await database.instantiate(bundle.mainModule, bundle.pthreadWorker);
     const connection = await database.connect();
     await connection.query(LOGS_TABLE_SQL);
+    await connection.query(EVENT_NAMES_TABLE_SQL);
     return connection;
   } catch (error) {
     worker?.terminate();

@@ -64,6 +64,9 @@ const roundTrip = (id: string | undefined, value: string, exclude = false) => {
 describe("query editing", () => {
   it("serializes canonical fields and quotes values that need it, parsing them back", () => {
     expect(formatTerm("eventId", "4672", false)).toBe("event_id:4672");
+    expect(formatTerm("eventName", "Process creation", false)).toBe(
+      'event_name:"Process creation"',
+    );
     expect(formatTerm("level", "4", true)).toBe("-level:4");
     expect(formatTerm("eventData.SubjectUserName", "fsir", false)).toBe("@SubjectUserName:fsir");
     expect(formatTerm("eventData.a.b-c", "x", false)).toBe("@a.b-c:x");

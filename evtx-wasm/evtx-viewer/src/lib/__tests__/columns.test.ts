@@ -63,4 +63,14 @@ describe("grid columns", () => {
     });
     expect(nextSort({ id: "eventId", desc: true }, "eventId")).toBeNull();
   });
+
+  it("includes Event Name next to Event ID in default columns", () => {
+    const columns = getDefaultColumns();
+    const eventIdIndex = columns.findIndex((col) => col.id === "eventId");
+    expect(eventIdIndex).toBeGreaterThanOrEqual(0);
+    expect(columns[eventIdIndex + 1]).toMatchObject({
+      id: "eventName",
+      header: "Event Name",
+    });
+  });
 });

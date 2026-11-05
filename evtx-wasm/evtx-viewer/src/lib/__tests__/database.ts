@@ -8,6 +8,7 @@ import {
   NODE_RUNTIME,
   VoidLogger,
 } from "@duckdb/duckdb-wasm/blocking";
+import { EVENT_NAMES_TABLE_SQL } from "../eventNames";
 
 export type { DuckDBConnection };
 
@@ -40,6 +41,7 @@ export async function openTestDatabase(): Promise<DuckDBConnection> {
     connection.close();
     throw error;
   }
+  connection.query(EVENT_NAMES_TABLE_SQL);
   return connection;
 }
 
